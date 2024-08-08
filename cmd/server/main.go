@@ -1,7 +1,8 @@
-package server
+package main
 
-import "fmt"
+import "github.com/datnguyen210/go-muji/internal/routers"
 
 func main() {
-	fmt.Println("Server running...")
+	r := routers.NewRouter()
+	r.Run(":8080")
 }
