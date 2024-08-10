@@ -3,6 +3,7 @@ package routers
 import (
 	"net/http"
 
+	"github.com/datnguyen210/go-muji/internal/controller"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,6 +16,7 @@ func NewRouter() *gin.Engine {
 				"message": "pong",
 			})
 		})
+		v1.GET("/user/1", controller.NewUserController().GetUserByID)
 	}
 	v2 := r.Group("/v2")
 	{
