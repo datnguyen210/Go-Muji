@@ -1,8 +1,17 @@
 package main
 
-import "github.com/datnguyen210/go-muji/internal/routers"
+import (
+	"fmt"
+
+	"github.com/datnguyen210/go-muji/internal/routers"
+	"github.com/spf13/viper"
+)
 
 func main() {
+	viper.SetConfigFile(".env")
+	viper.ReadInConfig()
+	port := viper.GetInt("PORT")
+
 	r := routers.NewRouter()
-	r.Run(":8080")
+	r.Run(fmt.Sprintf(":%d", port))
 }
