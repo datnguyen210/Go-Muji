@@ -34,15 +34,15 @@ func home(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func productView(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Display a specific product..."))
+func blogView(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Display a specific blog..."))
 }
 
-func productCreate(w http.ResponseWriter, r *http.Request) {
+func blogCreate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Allow", "POST")
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	w.Write([]byte("Create a new product..."))
+	w.Write([]byte("Create a new blog..."))
 }
