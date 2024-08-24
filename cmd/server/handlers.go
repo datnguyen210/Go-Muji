@@ -37,7 +37,7 @@ func (app *application) blogView(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 		return
 	}
-	fmt.Fprintf(w, "Display a specific snippet with ID %d...", id)
+	fmt.Fprintf(w, "Display a specific blog with ID %d...", id)
 }
 
 func (app *application) blogCreate(w http.ResponseWriter, r *http.Request) {
@@ -46,5 +46,18 @@ func (app *application) blogCreate(w http.ResponseWriter, r *http.Request) {
 		app.clientError(w, http.StatusMethodNotAllowed)
 		return
 	}
-	w.Write([]byte("Create a new blog..."))
+
+	// dummy data
+	title := "Building a second brain"
+	content := "Building a second brain with CODE and PARA method"
+	expires := 7
+
+	id, err := app.blogs.Insert(title, content, expires)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// redirect user to the blog details after creation
+	http.Redirect(w, r, fmt.Sprintf("/blog/view?id=%d", id), 200)
 }
