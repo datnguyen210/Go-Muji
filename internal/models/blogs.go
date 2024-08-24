@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 )
 
@@ -35,7 +36,20 @@ func (m *BlogModel) Insert(title string, content string, expires int) (int, erro
 }
 
 func (m *BlogModel) Get(id int) (*Blog, error) {
-	return nil, nil
+	stmt := `SELECT id, title, content, created, expires FROM blogs 
+	WHERE expires > UTC_TIMESTAMP() AND id =?`
+
+	s := &Blog{}
+
+	err := m.DB.QueryRow(stmt, id).Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoRecord
+		} else {
+			return nil, err
+		}
+	}
+	return s, nil
 }
 
 func (m *BlogModel) Latest() ([]*Blog, error) {

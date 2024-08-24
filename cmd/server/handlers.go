@@ -1,10 +1,14 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
+
+	"github.com/datnguyen210/go-blog/internal/models"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +41,25 @@ func (app *application) blogView(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 		return
 	}
-	fmt.Fprintf(w, "Display a specific blog with ID %d...", id)
+
+	blog, err := app.blogs.Get(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.notFound(w)
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	// Encode the blog data to JSON and write it to the response
+	err = json.NewEncoder(w).Encode(blog)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
 }
 
 func (app *application) blogCreate(w http.ResponseWriter, r *http.Request) {
