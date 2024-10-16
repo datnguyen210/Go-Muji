@@ -21,11 +21,29 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	blogs, err := app.blogs.Latest()
 	if err != nil {
 		app.serverError(w, err)
+		return 
+	}
+	for _, blog := range(blogs){
+		fmt.Fprintf(w, "%+v\n", blog )
 	}
 
-	for _, blog := range blogs {
-		fmt.Fprintf(w, "%+v\n", blog)
-	}
+
+	// files := []string{
+	// 	"./ui/html/base.tmpl",
+	// 	"./ui/html/partials/nav.tmpl",
+	// 	"./ui/html/pages/home.tmpl",
+	// }
+
+	// ts, err := template.ParseFiles(files...) // destructure
+	// if err != nil {
+	// 	app.serverError(w, err)
+	// 	return
+	// }
+
+	// err = ts.ExecuteTemplate(w, "base", nil)
+	// if err != nil {
+	// 	app.serverError(w, err)
+	// }
 }
 
 func (app *application) blogView(w http.ResponseWriter, r *http.Request) {

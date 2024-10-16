@@ -39,9 +39,9 @@ func (m *BlogModel) Get(id int) (*Blog, error) {
 	stmt := `SELECT id, title, content, created, expires FROM blogs 
 	WHERE expires > UTC_TIMESTAMP() AND id =?`
 
-	s := &Blog{}
+	b := &Blog{}
 
-	err := m.DB.QueryRow(stmt, id).Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+	err := m.DB.QueryRow(stmt, id).Scan(&b.ID, &b.Title, &b.Content, &b.Created, &b.Expires)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoRecord
@@ -49,33 +49,37 @@ func (m *BlogModel) Get(id int) (*Blog, error) {
 			return nil, err
 		}
 	}
-	return s, nil
+	return b, nil
 }
 
 func (m *BlogModel) Latest() ([]*Blog, error) {
 	stmt := `SELECT id, title, content, created, expires FROM blogs
 	WHERE expires > UTC_TIMESTAMP() ORDER BY id DESC LIMIT 10`
-
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		return nil, err
 	}
-
+	// Closing a resultset with defer rows.Close() is
+	// critical in the code above. As long as a resultset is open it will
+	// keep the underlying database connection open… so if
+	// something goes wrong in this method and the resultset isn’t
+	// closed, it can rapidly lead to all the connections in your pool
+	// being used up.
 	defer rows.Close()
 
 	blogs := []*Blog{}
+	for(rows.Next()) {
+		b := &Blog{}
 
-	for rows.Next() {
-		blog := &Blog{}
-		err := rows.Scan(&blog.ID, &blog.Title, &blog.Content, &blog.Created, &blog.Expires)
+		err := rows.Scan(&b.ID, &b.Title, &b.Content, &b.Created, &b.Expires)
 		if err != nil {
 			return nil, err
 		}
-		blogs = append(blogs, blog)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
+		blogs = append(blogs, b)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	return blogs, nil
 }
