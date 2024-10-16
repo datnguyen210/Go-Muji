@@ -21,26 +21,25 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Loop through the page filepaths one-by-one.
 	for _, page := range pages {
-		// Extract the file name (like 'home.tmpl')
-		// and assign it to the name variable.
+
 		name := filepath.Base(page)
 
-		// Create a slice containing the filepaths for 
-		// our base templates as well as the current page.
-		files := []string{
-			"./ui/html/base.tmpl",
-			"./ui/html/partials/nav.tmpl",
-			page,
-		}
-		// Parse the files into a template set.
-		ts, err := template.ParseFiles(files...)
+		ts, err := template.ParseFiles("./ui/html/base.tmpl")
 		if err != nil {
 			return nil, err
 		}
 
-		// Add the template set to the map
+		ts, err = ts.ParseGlob("./ui/html/partials/*.tmpl")
+		if err != nil {
+			return nil, err
+		}
+
+		ts, err = ts.ParseFiles(page)
+		if err != nil {
+			return nil, err
+		}
+
 		cache[name] = ts
 	}
 
