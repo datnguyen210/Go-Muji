@@ -1,0 +1,14 @@
+{{define "title"}}Blog #{{.Blog.ID}}{{end}}
+{{define "main"}}
+ <div class='blog'>
+ <div class='metadata'>
+ <strong>{{.Blog.Title}}</strong>
+ <span>#{{.Blog.ID}}</span>
+ </div>
+ <pre><code>{{.Blog.Content}}</code></pre>
+ <div class='metadata'>
+ <time>Created: {{.Blog.Created}}</time>
+ <time>Expires: {{.Blog.Expires}}</time>
+ </div>
+ </div>
+{{end}}

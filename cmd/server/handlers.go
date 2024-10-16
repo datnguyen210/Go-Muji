@@ -1,9 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
+	"text/template"
 
 	// "html/template"
 	"net/http"
@@ -26,23 +26,6 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	for _, blog := range blogs {
 		fmt.Fprintf(w, "%+v\n", blog)
 	}
-
-	// files := []string{
-	// 	"./ui/html/base.tmpl",
-	// 	"./ui/html/partials/nav.tmpl",
-	// 	"./ui/html/pages/home.tmpl",
-	// }
-
-	// ts, err := template.ParseFiles(files...) // destructure
-	// if err != nil {
-	// 	app.serverError(w, err)
-	// 	return
-	// }
-
-	// err = ts.ExecuteTemplate(w, "base", nil)
-	// if err != nil {
-	// 	app.serverError(w, err)
-	// }
 }
 
 func (app *application) blogView(w http.ResponseWriter, r *http.Request) {
@@ -62,13 +45,26 @@ func (app *application) blogView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	files := []string{
+		"./ui/html/base.tmpl",
+		"./ui/html/partials/nav.tmpl",
+		"./ui/html/pages/view.tmpl",
+	}
 
-	// Encode the blog data to JSON and write it to the response
-	err = json.NewEncoder(w).Encode(blog)
+	// Parse the template files
+	ts, err := template.ParseFiles(files...)
 	if err != nil {
 		app.serverError(w, err)
 		return
+	}
+
+	data := &templateData{
+		Blog: blog,
+	}
+
+	err = ts.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		app.serverError(w, err)
 	}
 }
 
