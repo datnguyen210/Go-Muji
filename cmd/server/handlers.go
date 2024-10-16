@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"text/template"
 
 	// "html/template"
 	"net/http"
@@ -21,30 +20,10 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	blogs, err := app.blogs.Latest()
 	if err != nil {
 		app.serverError(w, err)
-		return 
-	}
-
-
-	files := []string{
-		"./ui/html/base.tmpl",
-		"./ui/html/partials/nav.tmpl",
-		"./ui/html/pages/home.tmpl",
-	}
-
-	ts, err := template.ParseFiles(files...) // destructure
-	if err != nil {
-		app.serverError(w, err)
 		return
 	}
 
-	data := &templateData{
-		Blogs: blogs,
-	}
-
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, err)
-	}
+	app.render(w, http.StatusOK, "home.tmpl", &templateData{Blogs: blogs})
 }
 
 func (app *application) blogView(w http.ResponseWriter, r *http.Request) {
@@ -64,27 +43,7 @@ func (app *application) blogView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files := []string{
-		"./ui/html/base.tmpl",
-		"./ui/html/partials/nav.tmpl",
-		"./ui/html/pages/view.tmpl",
-	}
-
-	// Parse the template files
-	ts, err := template.ParseFiles(files...)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	data := &templateData{
-		Blog: blog,
-	}
-
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, err)
-	}
+	app.render(w, http.StatusOK, "view.tmpl", &templateData{Blog: blog})
 }
 
 func (app *application) blogCreate(w http.ResponseWriter, r *http.Request) {
