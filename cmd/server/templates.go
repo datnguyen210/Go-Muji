@@ -3,6 +3,7 @@ package main
 import (
 	"path/filepath"
 	"text/template"
+	"time"
 
 	"github.com/datnguyen210/go-blog/internal/models"
 )
@@ -11,6 +12,14 @@ type templateData struct {
 	CurrentYear int
 	Blog  *models.Blog
 	Blogs []*models.Blog
+}
+
+func formatDate(t time.Time) string {
+	return t.Format("2006-01-02 15:04")
+}
+
+var functions = template.FuncMap{
+	"formatDate": formatDate,
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {
@@ -26,7 +35,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 
 		name := filepath.Base(page)
 
-		ts, err := template.ParseFiles("./ui/html/base.tmpl")
+		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.tmpl")
 		if err != nil {
 			return nil, err
 		}
