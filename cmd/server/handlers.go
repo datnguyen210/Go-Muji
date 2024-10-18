@@ -23,7 +23,10 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.render(w, http.StatusOK, "home.tmpl", &templateData{Blogs: blogs})
+	data := app.newTemplateData(r)
+	data.Blogs = blogs
+
+	app.render(w, http.StatusOK, "home.tmpl", data)
 }
 
 func (app *application) blogView(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +46,10 @@ func (app *application) blogView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.render(w, http.StatusOK, "view.tmpl", &templateData{Blog: blog})
+	data := app.newTemplateData(r)
+ 	data.Blog = blog
+
+	app.render(w, http.StatusOK, "view.tmpl", data)
 }
 
 func (app *application) blogCreate(w http.ResponseWriter, r *http.Request) {

@@ -8,6 +8,7 @@ import (
 )
 
 type templateData struct {
+	CurrentYear int
 	Blog  *models.Blog
 	Blogs []*models.Blog
 }
