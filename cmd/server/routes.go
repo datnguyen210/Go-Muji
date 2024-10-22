@@ -11,5 +11,6 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/blog/view", app.blogView)
 	mux.HandleFunc("/blog/create", app.blogCreate)
 
-	return secureHeaders(mux)
+	// The order will be: log request -> secure headers -> servemux -> application handler
+	return app.logRequest(secureHeaders(mux))
 }
