@@ -3,20 +3,14 @@ package main
 import (
 	"errors"
 	"fmt"
-
-	// "html/template"
 	"net/http"
 	"strconv"
 
 	"github.com/datnguyen210/go-blog/internal/models"
+	"github.com/julienschmidt/httprouter"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		app.notFound(w)
-		return
-	}
-
 	blogs, err := app.blogs.Latest()
 	if err != nil {
 		app.serverError(w, err)
@@ -29,8 +23,9 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	app.render(w, http.StatusOK, "home.tmpl", data)
 }
 
-func (app *application) blogView(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+func (app *application) viewBlog(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil || id < 1 {
 		app.notFound(w)
 		return
@@ -47,19 +42,17 @@ func (app *application) blogView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := app.newTemplateData(r)
- 	data.Blog = blog
+	data.Blog = blog
 
 	app.render(w, http.StatusOK, "view.tmpl", data)
 }
 
-func (app *application) blogCreate(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.Header().Set("Allow", "POST")
-		app.clientError(w, http.StatusMethodNotAllowed)
-		return
-	}
+func (app *application) modalCreateBlog(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Display the form for creating a new snippet..."))
+}
 
-	// dummy data
+func (app *application) createBlog(w http.ResponseWriter, r *http.Request) {
+	// Dummy data
 	title := "Building a second brain"
 	content := "Building a second brain with CODE and PARA method"
 	expires := 7
@@ -70,6 +63,5 @@ func (app *application) blogCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// redirect user to the blog details after creation
-	http.Redirect(w, r, fmt.Sprintf("/blog/view?id=%d", id), 200)
+	http.Redirect(w, r, fmt.Sprintf("/blog/view/%d", id), 200)
 }
