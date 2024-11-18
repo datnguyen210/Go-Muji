@@ -52,16 +52,32 @@ func (app *application) modalCreateBlog(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *application) createBlog(w http.ResponseWriter, r *http.Request) {
-	// Dummy data
-	title := "Building a second brain"
-	content := "Building a second brain with CODE and PARA method"
-	expires := 7
+	// Parse form data from the request
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
 
+	// Retrieve values from form fields
+	title := r.FormValue("title")
+	content := r.FormValue("content")
+	expiresStr := r.FormValue("expires")
+
+	// Convert expires to an integer
+	expires, err := strconv.Atoi(expiresStr)
+	if err != nil || expires < 1 {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	// Insert the blog into the database
 	id, err := app.blogs.Insert(title, content, expires)
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/blog/view/%d", id), 200)
+	// Redirect to the new blog post's view page
+	http.Redirect(w, r, fmt.Sprintf("/blog/view/%d", id), http.StatusSeeOther)
 }
