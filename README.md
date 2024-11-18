@@ -1,5 +1,4 @@
 # Go Blog
-#### Video Demo:  https://youtu.be/hp7RLqbyhpk
 #### Description:
 ##### Features
 - Create Blog Posts: Users can create blog posts with a title, content, and an expiration date.
