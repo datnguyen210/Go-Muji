@@ -20,7 +20,6 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/blog/view/:id", app.viewBlog)
 	router.HandlerFunc(http.MethodGet, "/blog/create", app.modalCreateBlog)
 	router.HandlerFunc(http.MethodPost, "/blog/create", app.createBlog)
-
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 
 	return standard.Then(router)

@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -48,36 +47,11 @@ func (app *application) viewBlog(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) modalCreateBlog(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Display the form for creating a new snippet..."))
+	data := app.newTemplateData(r)
+
+	app.render(w, http.StatusOK, "create.tmpl", data)
 }
 
 func (app *application) createBlog(w http.ResponseWriter, r *http.Request) {
-	// Parse form data from the request
-	err := r.ParseForm()
-	if err != nil {
-		app.clientError(w, http.StatusBadRequest)
-		return
-	}
-
-	// Retrieve values from form fields
-	title := r.FormValue("title")
-	content := r.FormValue("content")
-	expiresStr := r.FormValue("expires")
-
-	// Convert expires to an integer
-	expires, err := strconv.Atoi(expiresStr)
-	if err != nil || expires < 1 {
-		app.clientError(w, http.StatusBadRequest)
-		return
-	}
-
-	// Insert the blog into the database
-	id, err := app.blogs.Insert(title, content, expires)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	// Redirect to the new blog post's view page
-	http.Redirect(w, r, fmt.Sprintf("/blog/view/%d", id), http.StatusSeeOther)
+	//
 }
