@@ -49,8 +49,19 @@ func (app *application) viewBlog(w http.ResponseWriter, r *http.Request) {
 	app.render(w, http.StatusOK, "view.tmpl", data)
 }
 
+type blogCreateForm struct {
+	Title       string
+	Content     string
+	Expires     int
+	FieldErrors map[string]string
+}
+
 func (app *application) modalCreateBlog(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
+
+	data.Form = blogCreateForm{
+		Expires: 365,
+	}
 
 	app.render(w, http.StatusOK, "create.tmpl", data)
 }
@@ -62,39 +73,43 @@ func (app *application) createBlog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	title := r.PostForm.Get("title")
-	content := r.PostForm.Get("content")
-
 	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
-	id, err := app.blogs.Insert(title, content, expires)
-	if err != nil {
-		app.serverError(w, err)
-		return
+	form := blogCreateForm{
+		Title:       r.PostForm.Get("title"),
+		Content:     r.PostForm.Get("content"),
+		Expires:     expires,
+		FieldErrors: map[string]string{},
 	}
 
-	fieldsErrors := make(map[string]string)
-
-	if strings.TrimSpace(title) == "" {
-		fieldsErrors["title"] = "Title cannot be blank"
-	} else if utf8.RuneCountInString(title) > 100 {
-		fieldsErrors["title"] = "Title exceeds 100 characters"
+	if strings.TrimSpace(form.Title) == "" {
+		form.FieldErrors["title"] = "Title cannot be blank"
+	} else if utf8.RuneCountInString(form.Title) > 100 {
+		form.FieldErrors["title"] = "Title exceeds 100 characters"
 	}
 
-	if strings.TrimSpace(content) == "" {
-		fieldsErrors["content"] = "Content cannot be blank"
+	if strings.TrimSpace(form.Content) == "" {
+		form.FieldErrors["content"] = "Content cannot be blank"
 	}
 
 	if expires != 1 && expires != 7 && expires != 365 {
-		fieldsErrors["expires"] = "Invalid expiration date: expires must be 1, 7 or 365"
+		form.FieldErrors["expires"] = "Invalid expiration date: expires must be 1, 7 or 365"
 	}
 
-	if len(fieldsErrors) > 0 {
-		fmt.Fprintf(w, "Validation errors: %v", fieldsErrors)
+	if len(form.FieldErrors) > 0 {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, http.StatusUnprocessableEntity, "create.tmpl", data)
+		return
+	}
+
+	id, err := app.blogs.Insert(form.Title, form.Content, expires)
+	if err != nil {
+		app.serverError(w, err)
 		return
 	}
 
