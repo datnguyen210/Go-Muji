@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/datnguyen210/go-blog/internal/models"
 	"github.com/julienschmidt/httprouter"
@@ -70,8 +72,29 @@ func (app *application) createBlog(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, err := app.blogs.Insert(title, content, expires)
-	if(err != nil) {
+	if err != nil {
 		app.serverError(w, err)
+		return
+	}
+
+	fieldsErrors := make(map[string]string)
+
+	if strings.TrimSpace(title) == "" {
+		fieldsErrors["title"] = "Title cannot be blank"
+	} else if utf8.RuneCountInString(title) > 100 {
+		fieldsErrors["title"] = "Title exceeds 100 characters"
+	}
+
+	if strings.TrimSpace(content) == "" {
+		fieldsErrors["content"] = "Content cannot be blank"
+	}
+
+	if expires != 1 && expires != 7 && expires != 365 {
+		fieldsErrors["expires"] = "Invalid expiration date: expires must be 1, 7 or 365"
+	}
+
+	if len(fieldsErrors) > 0 {
+		fmt.Fprintf(w, "Validation errors: %v", fieldsErrors)
 		return
 	}
 
