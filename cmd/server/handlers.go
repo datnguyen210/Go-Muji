@@ -49,10 +49,12 @@ func (app *application) viewBlog(w http.ResponseWriter, r *http.Request) {
 }
 
 type blogCreateForm struct {
-	Title   string
-	Content string
-	Expires int
-	validator.Validator
+	Title               string
+	Content             string
+	Expires             int
+	validator.Validator `form:"-"`
+	// the tag `form:"-"` indicates that this field should be ignored
+	// during form processing
 }
 
 func (app *application) modalCreateBlog(w http.ResponseWriter, r *http.Request) {
@@ -66,22 +68,12 @@ func (app *application) modalCreateBlog(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *application) createBlog(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+	var form blogCreateForm
+
+	err := app.decodePostForm(r, &form)
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
-	}
-
-	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
-	if err != nil {
-		app.clientError(w, http.StatusBadRequest)
-		return
-	}
-
-	form := blogCreateForm{
-		Title:   r.PostForm.Get("title"),
-		Content: r.PostForm.Get("content"),
-		Expires: expires,
 	}
 
 	form.CheckField(validator.NotBlank(form.Title), "title", "Title cannot be blank")
@@ -96,7 +88,7 @@ func (app *application) createBlog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := app.blogs.Insert(form.Title, form.Content, expires)
+	id, err := app.blogs.Insert(form.Title, form.Content, form.Expires)
 	if err != nil {
 		app.serverError(w, err)
 		return
