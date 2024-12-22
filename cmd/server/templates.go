@@ -13,6 +13,7 @@ type templateData struct {
 	Blog  *models.Blog
 	Blogs []*models.Blog
 	Form any
+	Flash string
 }
 
 func formatDate(t time.Time) string {

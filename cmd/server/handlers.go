@@ -49,9 +49,9 @@ func (app *application) viewBlog(w http.ResponseWriter, r *http.Request) {
 }
 
 type blogCreateForm struct {
-	Title               string
-	Content             string
-	Expires             int
+	Title               string `form:"title"`
+	Content             string `form:"content"`
+	Expires             int    `form:"expires"`
 	validator.Validator `form:"-"`
 	// the tag `form:"-"` indicates that this field should be ignored
 	// during form processing
@@ -93,6 +93,8 @@ func (app *application) createBlog(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
+
+	app.sessionManager.Put(r.Context(), "flash", "Blog created successfully ✅")
 
 	http.Redirect(w, r, fmt.Sprintf("/blog/view/%d", id), http.StatusSeeOther)
 }
