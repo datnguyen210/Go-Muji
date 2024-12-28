@@ -98,3 +98,66 @@ func (app *application) createBlog(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, fmt.Sprintf("/blog/view/%d", id), http.StatusSeeOther)
 }
+
+type userResgistryForm struct {
+	Name                string `form:"name"`
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+	// the tag `form:"-"` indicates that this field should be ignored
+	// during form processing
+}
+
+func (app *application) userRegister(w http.ResponseWriter, r *http.Request) {
+	data := app.newTemplateData(r)
+	data.Form = userResgistryForm{}
+	app.render(w, http.StatusOK, "registry.tmpl", data)
+}
+
+func (app *application) userRegisterPost(w http.ResponseWriter, r *http.Request) {
+	var form userResgistryForm
+	err := app.decodePostForm(r, &form)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	form.CheckField(validator.NotBlank(form.Name), "name", "Username cannot be blank")
+	form.CheckField(validator.NotBlank(form.Email), "email", "Email cannot be blank")
+	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "Please enter a valid email address")
+	form.CheckField(validator.NotBlank(form.Password), "password", "Password cannot be blank")
+	form.CheckField(validator.MinChars(form.Password, 8), "password", "Password must be at least 8 characters long")
+	if !form.Valid() {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, http.StatusUnprocessableEntity, "registry.tmpl", data)
+		return
+	}
+
+	err = app.users.Insert(form.Name, form.Email, form.Password)
+	if err != nil {
+		if errors.Is(err, models.ErrDuplidatedEmail) {
+			form.AddfieldError("email", "This email already exists")
+
+			data := app.newTemplateData(r)
+			data.Form = form
+			app.render(w, http.StatusUnprocessableEntity, "registry.tmpl", data)
+		} else {
+			app.serverError(w, err)
+		}
+
+		app.sessionManager.Put(r.Context(), "flash", "Register successfully, please log in")
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+	}
+}
+
+func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Display the log-in form...")
+}
+
+func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Log the user in...")
+}
+
+func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Log the user out...")
+}

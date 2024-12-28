@@ -83,3 +83,4 @@ func (m *BlogModel) Latest() ([]*Blog, error) {
 	}
 	return blogs, nil
 }
+
