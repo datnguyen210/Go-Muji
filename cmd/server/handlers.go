@@ -11,6 +11,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+var registryTemplate = "registry.tmpl"
+
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	blogs, err := app.blogs.Latest()
 	if err != nil {
@@ -111,7 +113,7 @@ type userResgistryForm struct {
 func (app *application) userRegister(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Form = userResgistryForm{}
-	app.render(w, http.StatusOK, "registry.tmpl", data)
+	app.render(w, http.StatusOK, registryTemplate, data)
 }
 
 func (app *application) userRegisterPost(w http.ResponseWriter, r *http.Request) {
@@ -129,7 +131,7 @@ func (app *application) userRegisterPost(w http.ResponseWriter, r *http.Request)
 	if !form.Valid() {
 		data := app.newTemplateData(r)
 		data.Form = form
-		app.render(w, http.StatusUnprocessableEntity, "registry.tmpl", data)
+		app.render(w, http.StatusUnprocessableEntity, registryTemplate, data)
 		return
 	}
 
@@ -140,7 +142,7 @@ func (app *application) userRegisterPost(w http.ResponseWriter, r *http.Request)
 
 			data := app.newTemplateData(r)
 			data.Form = form
-			app.render(w, http.StatusUnprocessableEntity, "registry.tmpl", data)
+			app.render(w, http.StatusUnprocessableEntity, registryTemplate, data)
 		} else {
 			app.serverError(w, err)
 		}
@@ -150,12 +152,59 @@ func (app *application) userRegisterPost(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+type userLoginForm struct {
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Display the log-in form...")
+	data := app.newTemplateData(r)
+	data.Form = userLoginForm{}
+	app.render(w, http.StatusOK, "login.tmpl", data)
 }
 
 func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Log the user in...")
+	var form userLoginForm
+	err := app.decodePostForm(r, &form)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form.CheckField(validator.NotBlank(form.Email), "email", "Email cannot be blank")
+	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "Please enter a valid email address")
+	form.CheckField(validator.NotBlank(form.Password), "password", "Password cannot be blank")
+
+	if !form.Valid() {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, http.StatusUnprocessableEntity, "login.tmpl", data)
+		return
+	}
+
+	id, err := app.users.Authenticate(form.Email, form.Password)
+	if err != nil {
+		if errors.Is(err, models.ErrInvalidCredentials) {
+			form.AddNonFieldError("Email or password is not correct")
+			data := app.newTemplateData(r)
+			data.Form = form
+			app.render(w, http.StatusUnprocessableEntity, "login.tmpl", data)
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+
+	err = app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "authenticatedUserID", id)
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
