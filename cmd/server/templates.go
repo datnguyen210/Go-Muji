@@ -14,6 +14,7 @@ type templateData struct {
 	Blogs []*models.Blog
 	Form any
 	Flash string
+	IsAuthenticated bool
 }
 
 func formatDate(t time.Time) string {
