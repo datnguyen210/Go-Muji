@@ -9,12 +9,13 @@ import (
 )
 
 type templateData struct {
-	CurrentYear int
-	Blog  *models.Blog
-	Blogs []*models.Blog
-	Form any
-	Flash string
+	CurrentYear     int
+	Blog            *models.Blog
+	Blogs           []*models.Blog
+	Form            any
+	Flash           string
 	IsAuthenticated bool
+	CSRFToken       string
 }
 
 func formatDate(t time.Time) string {

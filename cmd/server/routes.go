@@ -18,10 +18,10 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileServer))
 
 	// Automatically load and save session data with every HTTP request and response
-	dynamic := alice.New(app.sessionManager.LoadAndSave)
+	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf)
 
 	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))
-	
+
 	router.Handler(http.MethodGet, "/user/register", dynamic.ThenFunc(app.userRegister))
 	router.Handler(http.MethodPost, "/user/register", dynamic.ThenFunc(app.userRegisterPost))
 	router.Handler(http.MethodGet, "/user/login", dynamic.ThenFunc(app.userLogin))
