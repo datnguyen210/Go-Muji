@@ -18,6 +18,8 @@ func (app *application) routes() http.Handler {
 	fileServer := http.FileServer(http.FS(ui.Files))
 	router.Handler(http.MethodGet, "/static/*filepath", fileServer)
 
+	router.HandlerFunc(http.MethodGet, "/ping", ping)
+	
 	// Automatically load and save session data with every HTTP request and response
 	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf, app.authenticate)
 
