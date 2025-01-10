@@ -1,38 +1,20 @@
 package main
 
 import (
-	"bytes"
-	"io"
-	"log"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/datnguyen210/go-blog/internal/assert"
 )
 func TestPing(t *testing.T) {
+ app := newTestApplication(t)
 
-	app := &application{
-		errorLog: log.New(io.Discard, "", 0),
-		infoLog: log.New(io.Discard, "", 0),
-	}
+ ts := newTestServer(t, app.routes())
 
-	ts := httptest.NewTLSServer(app.routes())
-	defer ts.Close()
+ defer ts.Close()
 
-	res, err := ts.Client().Get(ts.URL + "/ping")
-	if err != nil {
-		t.Fatal(err)
-	}
-	
-	assert.Equal(t, res.StatusCode, http.StatusOK)
+ code, _, body := ts.get(t, "/ping")
 
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bytes.TrimSpace(body)
-	assert.Equal(t, string(body), "OK")
+ assert.Equal(t, code, http.StatusOK)
+ assert.Equal(t, body, "OK")
 }
