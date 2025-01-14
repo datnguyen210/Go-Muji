@@ -6,6 +6,12 @@ import (
 	"time"
 )
 
+type BlogModelInterface interface {
+	Insert(title, content string, expires int) (int, error)
+	Get(id int) (*Blog, error)
+	Latest() ([]*Blog, error)
+}
+
 type Blog struct {
 	ID      int
 	Title   string

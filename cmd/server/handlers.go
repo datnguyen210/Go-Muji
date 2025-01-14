@@ -146,10 +146,10 @@ func (app *application) userRegisterPost(w http.ResponseWriter, r *http.Request)
 		} else {
 			app.serverError(w, err)
 		}
-
-		app.sessionManager.Put(r.Context(), "flash", "Register successfully, please log in")
-		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 	}
+
+	app.sessionManager.Put(r.Context(), "flash", "Register successfully, please log in")
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
 type userLoginForm struct {
